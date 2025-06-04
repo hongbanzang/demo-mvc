@@ -1,9 +1,15 @@
 import com.foo.config.AppConfig
 import com.foo.config.SecurityConfig
 import com.foo.config.WebConfig
+import io.kotest.core.spec.IsolationMode
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.core.annotation.BeforeSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.core.test.TestCaseOrder
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.extension.ExtendWith
+import kotlin.test.*
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Order
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpSession
@@ -14,7 +20,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -25,11 +30,12 @@ import org.springframework.web.context.WebApplicationContext
 import java.io.InputStream
 import javax.servlet.ServletContext
 
-@ExtendWith(SpringExtension::class)
 @ContextConfiguration(classes = [AppConfig::class, SecurityConfig::class, WebConfig::class])
 @WebAppConfiguration
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class MyControllerTest {
+class MyControllerTest : AnnotationSpec() {
+    override fun isolationMode(): IsolationMode = IsolationMode.SingleInstance
+    override fun extensions() = listOf(SpringExtension)
+    override fun testCaseOrder() = TestCaseOrder.Sequential
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -39,7 +45,7 @@ class MyControllerTest {
     private val USER_PASS = "5555"
     private val FILE_NAME = "logo.png"
 
-    @BeforeAll
+    @BeforeSpec
     fun setupMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
             .apply(SecurityMockMvcConfigurers.springSecurity())
@@ -55,9 +61,9 @@ class MyControllerTest {
     @DisplayName("setup")
     fun setup() {
         val servletContext: ServletContext = webApplicationContext.servletContext
-        Assertions.assertNotNull(servletContext)
-        Assertions.assertTrue(servletContext is MockServletContext)
-        Assertions.assertNotNull(webApplicationContext.getBean("myController"))
+        assertNotNull(servletContext)
+        assertTrue(servletContext is MockServletContext)
+        assertNotNull(webApplicationContext.getBean("myController"))
     }
 
     @Test
