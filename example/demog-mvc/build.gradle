@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.22'
     id 'war'
 }
 
@@ -7,8 +7,8 @@ repositories {
     mavenCentral()
 }
 
-java {
-    sourceCompatibility = '17'
+kotlin {
+    jvmToolchain(17)
 }
 
 ext {
@@ -22,6 +22,8 @@ war {
 
 
 dependencies {
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
     implementation "org.springframework:spring-context:$springVersion"   
     implementation "org.springframework:spring-webmvc:$springVersion" 
@@ -71,3 +73,7 @@ test {
     include 'com/foo/**/*Test.class'    
 }
 
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions.jvmTarget = "17"
+}
